@@ -10,7 +10,7 @@
 
 Result example:
 
-    ![capture](capture.png)
+![capture](capture.png)
 
 # Computational complexity of ranking algorithm
 

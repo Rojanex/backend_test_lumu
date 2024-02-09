@@ -3,8 +3,9 @@ from app import parsed_app
 import sys
 
 if __name__ == '__main__':
+    #In case the number of arguments is different from 2, print usage mode and close script 
     if len(sys.argv) != 2:
-        print('Modo de uso: python run.py <query_file>') #En caso de que la cantidad de argumentos sea diferente de 2, imprimir modo de uso y cerrar script 
+        print('Modo de uso: python run.py <query_file>') 
         sys.exit(1)
 
     query_file = sys.argv[1]

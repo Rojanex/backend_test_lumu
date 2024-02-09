@@ -80,21 +80,19 @@ def ranking_calculation(records_list):
     client_ips = [record["client_ip"] for record in records_list]
     #Create a Counter object, to count how many times each ip appears in the list
     counter_client_ips = Counter(client_ips)
-    #Create a new list of tuples, each tuple represents a key-value pair sorted by the values in descending order
-    sorted_clients_ips = sorted(counter_client_ips.items(), key=lambda x: x[1], reverse=True) 
     
     #Repeat the process for hosts
     hosts = [record["name"] for record in records_list]
     counter_hosts = Counter(hosts)
-    sorted_hosts = sorted(counter_hosts.items(), key=lambda x: x[1], reverse=True)
-
-    #Create new lists for table that includes the top 5 ranks, append to the new list [ip, count, percentage}
+   
+   #Create new lists for table that includes the top 5 ranks, append to the new list [ip, count, percentage]
     client_ip_rank, host_rank = [], []
-    for ip, count in islice(sorted_clients_ips, 5):
+    for ip, count in counter_client_ips.most_common(5): #Use most_common() method of counter object to obtain only top 5
         client_ip_rank.append([ip, count, f"{format(count*100/total_records, '.2f')}%"])
-    for host, count in islice(sorted_hosts, 5):
-        host_rank.append([host, count, f"{format(count*100/total_records, '.2f')}%"])
-    
+    for ip, count in counter_hosts.most_common(5): #Use most_common() method of counter object to obtain only top 5
+        host_rank.append([ip, count, f"{format(count*100/total_records, '.2f')}%"])
+   
+
     #Printing ranking data
     print('Total records: ', total_records)
     print("")

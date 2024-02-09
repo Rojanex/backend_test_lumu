@@ -2,12 +2,16 @@ from datetime import datetime
 from collections import Counter
 from itertools import islice
 from tabulate import tabulate
+import requests, json, os, traceback
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def extract_info_from_queries(record):
 
     """
         Function that takes each record and filters key words, so it only has 
-        the needed information. Then creates a dictionary compatible with Lumu API and returns it. 
+        the needed information. Returns a dictionary compatible with Lumu API for each record. 
     """
     
     split_words = [ "query:", "info:", "client", "query:", 'queries:' ]
@@ -68,10 +72,42 @@ def divide_queries_in_chunks(records_list, chunks_size=500):
         if len(splitted_chunks) == chunks_size:
             all_chunks.append(splitted_chunks)
             splitted_chunks = []
-    if splitted_chunks: # En caso de que al final quede un lote con una cantidad menor de 500 records, igual agregarlo a la variable chunks
+    if splitted_chunks: # En caso de que al final quede un lote con una cantidad menor de 500 records, igual agregarlo a la lista chunks
         all_chunks.append(splitted_chunks)
 
     return all_chunks
+
+
+
+def send_chunks_to_lumu_api(chunks):
+    try:
+        count = 0
+        for chunk in chunks:
+            json_chunks = json.dumps(chunk)
+            base_url = os.environ.get('BASE_URL')
+            collector_id = os.environ.get('COLLECTOR_ID')
+            lumu_client_key = os.environ.get('LUMU_CLIENT_KEY')
+            api_url = f"{base_url}/collectors/{collector_id}/dns/queries?key={lumu_client_key}"
+            response = requests.post(
+                url = api_url,
+                data = json_chunks,
+                headers= {'Content-Type': 'application/json'}
+            )
+            if response.status_code ==  200:
+                print(f"Chunk #{chunks.index(chunk)+1} was sent successfully")
+                count = count + 1 
+            else:
+                print(f"Request for chunk #{chunks.index(chunk)+1} failed with status code {response.status_code}")
+        if count == len(chunks):
+            print("------ All queries has been sent to Lumu API successfully ------")
+            print("")
+        else: 
+            print(f"Sent queries: {count}")
+            print(f"Queries remaining: {len(chunks)-count}")
+            print("")
+    except Exception as err:
+        print(f'ERROR: {err}')
+        print(traceback.format_exc())
 
 
 
